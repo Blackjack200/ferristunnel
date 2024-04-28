@@ -1,12 +1,9 @@
-use std::any::Any;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Seek;
-use std::ops::Deref;
 
 use minecraft::packets::RequestNetworkSettingsPacket;
 
-use crate::minecraft::Packet;
 use crate::minecraft::packets::PacketKind::RequestNetworkSettings;
 
 mod minecraft;

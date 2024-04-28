@@ -33,7 +33,7 @@ impl Packet for RequestNetworkSettingsPacket {
     def_pk!(0xc1,false,RequestNetworkSettings);
     fn from(&mut self, out: &mut impl Read) -> io::Result<()> {
         self.protocol = out.read_i32::<BigEndian>()?;
-        return Ok(());
+        Ok(())
     }
 
     fn write(&self, out: &mut impl io::Write) -> io::Result<()> {

@@ -4,7 +4,6 @@ use std::io::{Read, Write};
 use std::io::Result;
 
 use bstream::{ReaderExt, WriterExt};
-use byteorder::{ReadBytesExt, WriteBytesExt};
 
 use crate::minecraft::packets::{decode_kind, PacketKind, RequestNetworkSettingsPacket};
 
@@ -25,13 +24,13 @@ pub trait Packet {
 fn decode<T: Packet + Clone>(pk: &T, r: &mut impl Read) -> Result<T> {
     let mut cpk = pk.clone();
     cpk.from(r)?;
-    return Ok(cpk);
+    Ok(cpk)
 }
 
 pub(crate) fn read_packet(r: &mut impl Read) -> Result<PacketKind> {
     let header = r.read_vi32()?;
     let pid = header & 0x3ff;
-    let mut map: HashMap<i32, PacketKind> = HashMap::from([
+    let map: HashMap<i32, PacketKind> = HashMap::from([
         (RequestNetworkSettingsPacket::id(), RequestNetworkSettingsPacket::kind())
     ]);
     let kind = map.get(&pid).unwrap();
