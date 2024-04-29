@@ -10,7 +10,7 @@ use crate::minecraft::packets::PacketKind::*;
 
 macro_rules! register_pk {
     ($name:tt,$id:tt,$c:tt,$kind:tt) => {
-        impl Packet for $name { 
+        impl Packet for $name {
             #[inline]
             fn compressible() -> bool {
                 return $c;
