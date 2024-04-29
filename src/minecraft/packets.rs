@@ -95,7 +95,7 @@ pub(crate) struct LoginPacket {
     // client_protocol is the protocol version of the player. The player is disconnected if the protocol is incompatible
     // with the protocol of the server. It has been superseded by the protocol version sent in the
     // RequestNetworkSettings packet, so this should no longer be used by the server.
-    client_protocol: i32,
+    pub(crate) client_protocol: i32,
     /// connection_request is a string containing information about the player and JWTs that may be used to
     /// verify if the player is connected to XBOX Live. The connection request also contains the necessary
     /// client public key to initiate encryption.
