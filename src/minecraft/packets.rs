@@ -31,6 +31,7 @@ pub enum PacketKind {
     Login(LoginPacket),
     PlayStatus(PlayStatusPacket),
     ActorEvent(ActorEventPacket),
+    ActorPickRequest(ActorPickRequestPacket),
 }
 
 pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
@@ -40,6 +41,7 @@ pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
         Login(pk) => Login(decode(pk, r)?),
         PlayStatus(pk) => { PlayStatus(decode(pk, r)?) }
         ActorEvent(pk) => { ActorEvent(decode(pk, r)?) }
+        ActorPickRequest(pk) => { ActorPickRequest(decode(pk, r)?) }
     })
 }
 
@@ -219,3 +221,19 @@ pub struct ActorEventPacket {
 }
 
 register_pk!(ActorEventPacket, 0x1b, true, ActorEvent);
+
+/// ActorPickRequest is sent by the client when it tries to pick an entity, so that it gets a spawn egg which
+/// can spawn that entity.
+#[derive(Debug, Clone, Default, BStream)]
+pub struct ActorPickRequestPacket {
+    /// entity_unique_id is the unique ID of the entity that was attempted to be picked. The server must find the
+    /// type of that entity and provide the correct spawn egg to the player.
+    pub entity_unique_id: i64,
+    /// hot_bar_slot is the held hot bar slot of the player at the time of trying to pick the entity. If empty,
+    /// the resulting spawn egg should be put into this slot.
+    pub hot_bar_slot: i8,
+    /// with_data is true if the pick request requests the entity metadata.
+    pub with_data: bool,
+}
+
+register_pk!(ActorPickRequestPacket, 0x23, true, ActorPickRequest);
