@@ -8,7 +8,7 @@ use crate::minecraft::packets::{
     decode_kind, packet_pool, PacketKind,
 };
 
-pub(crate) mod packets;
+pub mod packets;
 
 pub trait Packet {
     fn compressible() -> bool;
@@ -22,7 +22,7 @@ fn decode<T: Packet + Clone + BinaryStream>(pk: &T, r: &mut impl Read) -> Result
     Ok(cpk)
 }
 
-pub(crate) fn read_packet(r: &mut impl Read) -> Result<PacketKind> {
+pub fn read_packet(r: &mut impl Read) -> Result<PacketKind> {
     let header = r.read_vi32()?;
     let pid = header & 0x3ff;
     let map = packet_pool();
@@ -30,7 +30,7 @@ pub(crate) fn read_packet(r: &mut impl Read) -> Result<PacketKind> {
     decode_kind(r, kind)
 }
 
-pub(crate) fn write_packet<T: Packet + BinaryStream>(w: &mut impl Write, pk: &T) -> io::Result<()> {
+pub fn write_packet<T: Packet + BinaryStream>(w: &mut impl Write, pk: &T) -> io::Result<()> {
     w.write_vi32(T::id())?;
     pk.write(w)
 }

@@ -98,17 +98,25 @@ pub trait BinaryStream {
 #[derive(Debug, Default, Clone)]
 pub struct Vu32LenByteSlice(pub Vec<u8>);
 
-impl BinaryStream for Vu32LenByteSlice {
-    fn read(&mut self, out: &mut impl Read) -> io::Result<()> {
-        self.0.clear();
+pub trait EnumBinaryStream {
+    fn read(out: &mut impl Read) -> io::Result<Self>
+    where
+        Self: Sized;
+    fn write(&self, out: &mut impl Write) -> io::Result<()>;
+}
+
+impl Vu32LenByteSlice {
+    pub fn read(out: &mut impl Read) -> io::Result<Self> {
+        let mut v = Self::default();
+        v.0.clear();
         let len = out.read_vu32()?;
         for _ in 0..len {
-            self.0.push(out.read_u8()?)
+            v.0.push(out.read_u8()?)
         }
-        Ok(())
+        Ok(v)
     }
 
-    fn write(&self, out: &mut impl Write) -> io::Result<()> {
+    pub fn write(&self, out: &mut impl Write) -> io::Result<()> {
         for elem in self.0.iter() {
             out.write_u8(*elem)?
         }

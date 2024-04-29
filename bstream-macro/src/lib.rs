@@ -20,13 +20,6 @@ fn is_supported_typ(str: &str) -> bool {
         LittleEndian,
         BigEndian,
         Varint,
-        U8Len,
-        U16Len,
-        U32Len,
-        Vu32Len,
-        Vi32Len,
-        Vu64Len,
-        Vi64Len,
     )
 )]
 pub fn derive(input: TokenStream) -> TokenStream {
@@ -46,9 +39,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                             let field_id = &field.ident;
                             let typ = &field.ty;
                             read.extend(quote! {
-                                let mut v = #typ::default();
-                                #typ::read(&mut v, out)?;
-                                self.#field_id = v;
+                                self.#field_id = #typ::read(out)?;
                             });
                             write.extend(quote! {
                                 self.#field_id.write(out)?;
