@@ -100,12 +100,18 @@ pub struct Vu32LenByteSlice(pub Vec<u8>);
 
 pub trait EnumBinaryStream {
     fn read(out: &mut impl Read) -> io::Result<Self>
-    where
-        Self: Sized;
+        where
+            Self: Sized;
     fn write(&self, out: &mut impl Write) -> io::Result<()>;
 }
 
 impl Vu32LenByteSlice {
+    #[inline]
+    pub fn from<T: Into<Vec<u8>>>(v: T) -> Self {
+        Self(v.into())
+    }
+
+    #[inline]
     pub fn read(out: &mut impl Read) -> io::Result<Self> {
         let mut v = Self::default();
         v.0.clear();
@@ -116,7 +122,9 @@ impl Vu32LenByteSlice {
         Ok(v)
     }
 
+    #[inline]
     pub fn write(&self, out: &mut impl Write) -> io::Result<()> {
+        out.write_vu32(self.0.len() as u32)?;
         for elem in self.0.iter() {
             out.write_u8(*elem)?
         }

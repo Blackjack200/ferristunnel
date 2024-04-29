@@ -1,37 +1,28 @@
-use std::collections::HashMap;
-use std::io;
 use std::io::Read;
 
 use bstream::Vu32LenByteSlice;
 use bstream_macro::BStream;
 
-use crate::minecraft::{decode, Packet};
+use crate::minecraft::*;
 use crate::minecraft::packets::PacketKind::*;
 
 macro_rules! register_pk {
     ($name:tt,$id:tt,$c:tt,$kind:tt) => {
-        impl Packet for $name {
+        impl Packet for $name { 
+            #[inline]
             fn compressible() -> bool {
                 return $c;
             }
+            #[inline]
             fn id() -> i32 {
                 return $id;
             }
+            #[inline]
             fn kind() -> PacketKind {
                 return $kind(Default::default());
             }
         }
     };
-}
-
-pub fn packet_pool() -> HashMap<i32, PacketKind> {
-    HashMap::from([
-        (
-            RequestNetworkSettingsPacket::id(),
-            RequestNetworkSettingsPacket::kind(),
-        ),
-        (NetworkSettingsPacket::id(), NetworkSettingsPacket::kind()),
-    ])
 }
 
 pub enum PacketKind {
@@ -40,7 +31,7 @@ pub enum PacketKind {
     Login(LoginPacket),
 }
 
-pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> io::Result<PacketKind> {
+pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
     Ok(match kind {
         RequestNetworkSettings(pk) => RequestNetworkSettings(decode(pk, r)?),
         NetworkSettings(pk) => NetworkSettings(decode(pk, r)?),

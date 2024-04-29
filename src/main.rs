@@ -2,8 +2,11 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Seek;
 
-use crate::minecraft::packets::PacketKind::RequestNetworkSettings;
-use crate::minecraft::packets::{NetworkSettingsPacket, PacketKind};
+use bstream::Vu32LenByteSlice;
+
+use crate::minecraft::*;
+use crate::minecraft::packets::LoginPacket;
+use crate::minecraft::packets::PacketKind::*;
 
 mod minecraft;
 
@@ -16,23 +19,29 @@ fn main() {
         .open("wow.txt")
         .unwrap();
 
-    let mut pk = NetworkSettingsPacket::default();
-    pk.compression_algorithm = 1;
+    let pk = LoginPacket {
+        client_protocol: DefaultProtocol::id(),
+        connection_request: Vu32LenByteSlice::from("{}{}{}"),
+    };
     println!("{:?}", &pk);
 
-    minecraft::write_packet(&mut f, &pk).unwrap();
+    DefaultProtocol::write_packet(&mut f, &pk).unwrap();
 
     f.rewind().unwrap();
 
-    let some = minecraft::read_packet(&mut f).unwrap();
+    let pool = DefaultProtocol::pool();
+    let some = DefaultProtocol::read_packet(&pool, &mut f).unwrap();
+
     match some {
         RequestNetworkSettings(pk) => {
             println!("{:?}", &pk);
         }
-        PacketKind::NetworkSettings(pk) => {
+        NetworkSettings(pk) => {
             println!("{:?}", &pk);
         }
-        _ => {}
+        Login(pk) => {
+            println!("{:?}", &pk);
+        }
     }
     fs::remove_file("wow.txt").unwrap()
 }

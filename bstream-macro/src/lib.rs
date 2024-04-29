@@ -15,12 +15,12 @@ fn is_supported_typ(str: &str) -> bool {
 }
 
 #[proc_macro_derive(
-    BStream,
-    attributes(
-        LittleEndian,
-        BigEndian,
-        Varint,
-    )
+BStream,
+attributes(
+LittleEndian,
+BigEndian,
+Varint,
+)
 )]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -59,7 +59,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            (quote! {
+            quote! {
                 impl bstream::BinaryStream for #struct_identifier {
                     fn read(&mut self, out: &mut impl ::std::io::Read) -> ::std::io::Result<()> {
                         #read
@@ -71,8 +71,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         ::std::io::Result::Ok(())
                     }
                 }
-            })
-            .into()
+            }.into()
         }
         _ => unimplemented!(),
     }
