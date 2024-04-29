@@ -13,12 +13,14 @@ pub fn b_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
         let ls = attr.to_string();
         let typ_str: Vec<&str> = ls.splitn(2, ',').collect();
         let mut little_endian = true;
+        let mut varint = false;
         if typ_str.len() > 1 {
             little_endian = typ_str[1].trim().to_lowercase() != ("bigendian");
+            varint = typ_str[1].trim().to_lowercase() == ("varint");
         }
         let typ = Ident::new(typ_str[0], Span::call_site());
-        let rf = gen_fn(typ_str[0], little_endian, true);
-        let wf = gen_fn(typ_str[0], little_endian, false);
+        let rf = gen_fn(typ_str[0], little_endian, true, varint);
+        let wf = gen_fn(typ_str[0], little_endian, false, varint);
         let enum_id = &input.ident;
         let mut read = quote! {};
 
@@ -125,15 +127,20 @@ fn get_func(
     if varint {
         typ.insert(0, 'v');
     }
-    let b = gen_fn(&typ, little_endian, read);
+    let b = gen_fn(&typ, little_endian, read, false);
     if read {
         return quote! {self.#field_id = #b(out)?;};
     }
     quote! {#b(out, self.#field_id)?;}
 }
 
-fn gen_fn(typ: &str, little_endian: bool, read: bool) -> proc_macro2::TokenStream {
+fn gen_fn(typ: &str, little_endian: bool, read: bool, force_varint: bool) -> proc_macro2::TokenStream {
+    let mut typ: String = typ.to_string();
     let mut varint = typ == "vi32" || typ == "vu32" || typ == "vi64" || typ == "vu64";
+    if force_varint && !varint {
+        varint = true;
+        typ.insert(0, 'v');
+    }
     let mut func = String::from(match read {
         true => "read_",
         false => "write_",
@@ -143,7 +150,7 @@ fn gen_fn(typ: &str, little_endian: bool, read: bool) -> proc_macro2::TokenStrea
         endian = Ident::new("BigEndian", Span::call_site())
     }
 
-    func.push_str(typ);
+    func.push_str(&typ);
     let func_id = Ident::new(func.as_str(), Span::call_site());
 
     if typ == "bool" {

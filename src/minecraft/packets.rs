@@ -30,6 +30,7 @@ pub enum PacketKind {
     NetworkSettings(NetworkSettingsPacket),
     Login(LoginPacket),
     PlayStatus(PlayStatusPacket),
+    ActorEvent(ActorEventPacket),
 }
 
 pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
@@ -38,6 +39,7 @@ pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
         NetworkSettings(pk) => NetworkSettings(decode(pk, r)?),
         Login(pk) => Login(decode(pk, r)?),
         PlayStatus(pk) => { PlayStatus(decode(pk, r)?) }
+        ActorEvent(pk) => { ActorEvent(decode(pk, r)?) }
     })
 }
 
@@ -132,3 +134,88 @@ pub struct PlayStatusPacket {
 }
 
 register_pk!(PlayStatusPacket, 0x02, true, PlayStatus);
+
+#[derive(Debug, Clone, Default)]
+#[b_enum(u64, Varint)]
+pub enum ActorEvent {
+    #[default]
+    JUMP = 1,
+    HurtAnimation = 2,
+    DeathAnimation = 3,
+    ArmSwing = 4,
+    StopAttack = 5,
+    TameFail = 6,
+    TameSuccess = 7,
+    ShakeWet = 8,
+    UseItem = 9,
+    EatGrassAnimation = 10,
+    FishHookBubble = 11,
+    FishHookPosition = 12,
+    FishHookHook = 13,
+    FishHookTease = 14,
+    SquidInkCloud = 15,
+    ZombieVillagerCure = 16,
+    PlayAmbientSound = 17,
+    RESPAWN = 18,
+    IronGolemOfferFlower = 19,
+    IronGolemWithdrawFlower = 20,
+    LoveParticles = 21, //breeding
+    VillagerAngry = 22,
+    VillagerHappy = 23,
+    WitchSpellParticles = 24,
+    FireworkParticles = 25,
+    InLoveParticles = 26,
+    SilverfishSpawnAnimation = 27,
+    GuardianAttack = 28,
+    WitchDrinkPotion = 29,
+    WitchThrowPotion = 30,
+    MinecartTntPrimeFuse = 31,
+    CreeperPrimeFuse = 32,
+    AirSupplyExpired = 33,
+    PlayerAddXpLevels = 34,
+    ElderGuardianCurse = 35,
+    AgentArmSwing = 36,
+    EnderDragonDeath = 37,
+    DustParticles = 38, //not sure what this is
+    ArrowShake = 39,
+
+    EatingItem = 57,
+
+    BabyAnimalFeed = 60, //green particles, like bonemeal on crops
+    DeathSmokeCloud = 61,
+    CompleteTrade = 62,
+    RemoveLeash = 63, //data 1 = cut leash
+    CaravanUpdated = 64,
+    ConsumeTotem = 65,
+    PlayerCheckTreasureHunterAchievement = 66, //mojang...
+    EntitySpawn = 67, //used for MinecraftEventing stuff, not needed
+    DragonPuke = 68, //they call this puke particles
+    ItemEntityMerge = 69,
+    StartSwim = 70,
+    BalloonPop = 71,
+    TreasureHunt = 72,
+    AgentSummon = 73,
+    ChargedItem = 74,
+    FALL = 75,
+    GrowUp = 76,
+    VibrationDetected = 77,
+    DrinkMilk = 78,
+}
+
+/// ActorEventPacket is sent by the server when a particular event happens that has to do with an entity. Some of
+/// these events are entity-specific, for example a wolf shaking itself dry, but others are used for each
+/// entity, such as dying.
+#[derive(Debug, Clone, Default, BStream)]
+pub struct ActorEventPacket {
+    /// entity_runtime_id is the runtime ID of the entity. The runtime ID is unique for each world session, and
+    /// entities are generally identified in packets using this runtime ID.
+    pub entity_runtime_id: ActorEvent,
+    /// event_type is the ID of the event to be called. It is one of the constants that can be found above.
+    pub event_type: u8,
+    /// event_data is optional data associated with a particular event. The data has a different function for
+    /// different event,s, however most events don't use this field at all.
+    #[Varint]
+    pub event_data: u32,
+}
+
+register_pk!(ActorEventPacket, 0x1b, true, ActorEvent);
