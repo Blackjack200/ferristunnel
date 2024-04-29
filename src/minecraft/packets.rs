@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Read;
 
+use bstream::Vu32LenByteSlice;
 use bstream_macro::BStream;
 
 use crate::minecraft::{decode, Packet};
@@ -36,12 +37,14 @@ pub fn packet_pool() -> HashMap<i32, PacketKind> {
 pub enum PacketKind {
     RequestNetworkSettings(RequestNetworkSettingsPacket),
     NetworkSettings(NetworkSettingsPacket),
+    Login(LoginPacket),
 }
 
 pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> io::Result<PacketKind> {
     Ok(match kind {
         RequestNetworkSettings(pk) => RequestNetworkSettings(decode(pk, r)?),
         NetworkSettings(pk) => NetworkSettings(decode(pk, r)?),
+        Login(pk) => Login(decode(pk, r)?),
     })
 }
 
@@ -84,3 +87,19 @@ pub(crate) struct NetworkSettingsPacket {
 }
 
 register_pk!(NetworkSettingsPacket, 0x8f, false, NetworkSettings);
+
+/// LoginPacket is sent when the client initially tries to join the server. It is the first packet sent and contains
+/// information specific to the player.
+#[derive(Debug, Clone, Default, BStream)]
+pub(crate) struct LoginPacket {
+    // client_protocol is the protocol version of the player. The player is disconnected if the protocol is incompatible
+    // with the protocol of the server. It has been superseded by the protocol version sent in the
+    // RequestNetworkSettings packet, so this should no longer be used by the server.
+    client_protocol: i32,
+    /// connection_request is a string containing information about the player and JWTs that may be used to
+    /// verify if the player is connected to XBOX Live. The connection request also contains the necessary
+    /// client public key to initiate encryption.
+    pub(crate) connection_request: Vu32LenByteSlice,
+}
+
+register_pk!(LoginPacket, 0x01, true, Login);
