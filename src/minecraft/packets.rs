@@ -1,9 +1,7 @@
-use std::io::{Error, ErrorKind, Read};
-
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use std::io::Read;
 
 use bstream::{EnumBinaryStream, Vu32LenByteSlice};
-use bstream_macro::BStream;
+use bstream_macro::{b_enum, BStream};
 
 use crate::minecraft::*;
 use crate::minecraft::packets::PacketKind::*;
@@ -46,7 +44,7 @@ pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
 pub struct RequestNetworkSettingsPacket {
     /// client_protocol is the protocol version of the player. The player is disconnected if the protocol is
     /// incompatible with the protocol of the server.
-    #[Varint]
+    #[BigEndian]
     pub client_protocol: i32,
 }
 
@@ -58,29 +56,13 @@ register_pk!(
 );
 
 #[derive(Clone, Debug, Default)]
+#[b_enum(u16)]
 pub enum CompressionAlgorithm {
     Zlib = 0,
     Snappy = 1,
 
     #[default]
     None = 255,
-}
-
-impl EnumBinaryStream for CompressionAlgorithm {
-    fn read(out: &mut impl Read) -> Result<Self> where Self: Sized {
-        match out.read_u16::<LittleEndian>()? {
-            0 => Ok(CompressionAlgorithm::Zlib),
-            1 => Ok(CompressionAlgorithm::Snappy),
-            255 => Ok(CompressionAlgorithm::None),
-            v => {
-                Err(Error::new(ErrorKind::InvalidData, format!("invalid value {}", v)))
-            }
-        }
-    }
-
-    fn write(&self, out: &mut impl Write) -> Result<()> {
-        out.write_u16::<LittleEndian>(self.clone() as u16)
-    }
 }
 
 /// NetworkSettingsPacket is sent by the server to update a variety of network settings. These settings modify the

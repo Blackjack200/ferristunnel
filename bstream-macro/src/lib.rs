@@ -6,6 +6,45 @@ use syn::__private::quote::quote;
 use syn::__private::ToTokens;
 use syn::Type::Path;
 
+#[proc_macro_attribute]
+pub fn b_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as DeriveInput);
+    if let Data::Enum(syn::DataEnum { variants, .. }) = &input.data {
+        let typ_str = attr.to_string();
+        let typ = Ident::new(typ_str.as_str(), Span::call_site());
+        let rf = gen_fn(&typ_str, true, true);
+        let wf = gen_fn(&typ_str, true, false);
+        let enum_id = &input.ident;
+        let mut read = quote! {};
+
+        for variant in variants {
+            let v_id = &variant.ident;
+            let v_v = variant.discriminant.clone().unwrap().1;
+            read.extend(quote! {
+                #v_v => ::std::io::Result::Ok(#enum_id::#v_id),
+            })
+        }
+        return quote! {
+            #input
+            impl ::bstream::EnumBinaryStream for #enum_id {
+                fn read(out: &mut impl ::std::io::Read) -> ::std::io::Result<Self> {
+                    match #rf(out)? {
+                        #read
+                        v => {
+                            ::std::io::Result::Err(::std::io::Error::new(::std::io::ErrorKind::InvalidData, format!("invalid value {}", v)))
+                        },
+                    }
+                }
+                
+                fn write(&self, out: &mut impl ::std::io::Write) -> ::std::io::Result<()> {
+                    #wf(out, self.clone() as #typ)
+                }
+            }
+        }.into();
+    }
+    unimplemented!()
+}
+
 #[inline]
 fn is_supported_typ(str: &str) -> bool {
     matches!(
@@ -14,14 +53,7 @@ fn is_supported_typ(str: &str) -> bool {
     )
 }
 
-#[proc_macro_derive(
-BStream,
-attributes(
-LittleEndian,
-BigEndian,
-Varint,
-)
-)]
+#[proc_macro_derive(BStream, attributes(LittleEndian, BigEndian, Varint))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let struct_identifier = &input.ident;
