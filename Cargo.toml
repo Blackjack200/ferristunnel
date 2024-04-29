@@ -1,6 +1,7 @@
+workspace = { members = ["bstream-macro"] }
 [package]
-name = "rust_test"
-version = "0.1.0"
+name = "ferristunnel"
+version = "0.0.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,4 +9,5 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 bstream = { path = "bstream" }
+bstream-macro = { path = "bstream-macro" }
 byteorder = "1.5.0"

@@ -2,9 +2,8 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Seek;
 
-use minecraft::packets::RequestNetworkSettingsPacket;
-
 use crate::minecraft::packets::PacketKind::RequestNetworkSettings;
+use crate::minecraft::packets::{NetworkSettingsPacket, PacketKind};
 
 mod minecraft;
 
@@ -17,7 +16,8 @@ fn main() {
         .open("wow.txt")
         .unwrap();
 
-    let pk = RequestNetworkSettingsPacket { protocol: 112 };
+    let mut pk = NetworkSettingsPacket::default();
+    pk.compression_algorithm = 1;
     println!("{:?}", &pk);
 
     minecraft::write_packet(&mut f, &pk).unwrap();
@@ -27,6 +27,9 @@ fn main() {
     let some = minecraft::read_packet(&mut f).unwrap();
     match some {
         RequestNetworkSettings(pk) => {
+            println!("{:?}", &pk);
+        }
+        PacketKind::NetworkSettings(pk) => {
             println!("{:?}", &pk);
         }
     }
