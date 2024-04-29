@@ -10,10 +10,15 @@ use syn::Type::Path;
 pub fn b_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
     if let Data::Enum(syn::DataEnum { variants, .. }) = &input.data {
-        let typ_str = attr.to_string();
-        let typ = Ident::new(typ_str.as_str(), Span::call_site());
-        let rf = gen_fn(&typ_str, true, true);
-        let wf = gen_fn(&typ_str, true, false);
+        let ls = attr.to_string();
+        let typ_str: Vec<&str> = ls.splitn(2, ',').collect();
+        let mut little_endian = true;
+        if typ_str.len() > 1 {
+            little_endian = typ_str[1].trim().to_lowercase() != ("bigendian");
+        }
+        let typ = Ident::new(typ_str[0], Span::call_site());
+        let rf = gen_fn(typ_str[0], little_endian, true);
+        let wf = gen_fn(typ_str[0], little_endian, false);
         let enum_id = &input.ident;
         let mut read = quote! {};
 
@@ -35,7 +40,7 @@ pub fn b_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
                         },
                     }
                 }
-                
+
                 fn write(&self, out: &mut impl ::std::io::Write) -> ::std::io::Result<()> {
                     #wf(out, self.clone() as #typ)
                 }
@@ -127,7 +132,7 @@ fn get_func(
     quote! {#b(out, self.#field_id)?;}
 }
 
-fn gen_fn(typ: &String, little_endian: bool, read: bool) -> proc_macro2::TokenStream {
+fn gen_fn(typ: &str, little_endian: bool, read: bool) -> proc_macro2::TokenStream {
     let mut varint = typ == "vi32" || typ == "vu32" || typ == "vi64" || typ == "vu64";
     let mut func = String::from(match read {
         true => "read_",

@@ -43,6 +43,7 @@ fn main() {
         Login(pk) => {
             println!("{:?}", &pk);
         }
+        _ => {}
     }
     fs::remove_file("wow.txt").unwrap()
 }

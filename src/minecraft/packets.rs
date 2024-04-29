@@ -29,6 +29,7 @@ pub enum PacketKind {
     RequestNetworkSettings(RequestNetworkSettingsPacket),
     NetworkSettings(NetworkSettingsPacket),
     Login(LoginPacket),
+    PlayStatus(PlayStatusPacket),
 }
 
 pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
@@ -36,6 +37,7 @@ pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
         RequestNetworkSettings(pk) => RequestNetworkSettings(decode(pk, r)?),
         NetworkSettings(pk) => NetworkSettings(decode(pk, r)?),
         Login(pk) => Login(decode(pk, r)?),
+        PlayStatus(pk) => { PlayStatus(decode(pk, r)?) }
     })
 }
 
@@ -104,3 +106,29 @@ pub struct LoginPacket {
 }
 
 register_pk!(LoginPacket, 0x01, true, Login);
+
+#[derive(Debug, Clone, Default)]
+#[b_enum(i32, BigEndian)]
+pub enum PlayStatus {
+    #[default]
+    LoginSuccess = 0,
+    LoginFailedClient = 1,
+    LoginFailedServer = 2,
+    PlayerSpawn = 3,
+    LoginFailedInvalidTenant = 4,
+    LoginFailedVanillaEdu = 5,
+    LoginFailedEduVanilla = 6,
+    LoginFailedServerFull = 7,
+    LoginFailedEditorVanilla = 8,
+    LoginFailedVanillaEditor = 9,
+}
+
+/// PlayStatus is sent by the server to update a player on the play status. This includes failed statuses due
+/// to a mismatched version, but also success statuses.
+#[derive(Debug, Clone, Default, BStream)]
+pub struct PlayStatusPacket {
+    /// status is the status of the packet. It is one of the constants found above.
+    status: PlayStatus,
+}
+
+register_pk!(PlayStatusPacket, 0x02, true, PlayStatus);
