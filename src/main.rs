@@ -2,10 +2,8 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Seek;
 
-use bstream::Vu32LenByteSlice;
-
 use crate::minecraft::*;
-use crate::minecraft::packets::LoginPacket;
+use crate::minecraft::packets::{CompressionAlgorithm, NetworkSettingsPacket};
 use crate::minecraft::packets::PacketKind::*;
 
 mod minecraft;
@@ -19,9 +17,12 @@ fn main() {
         .open("wow.txt")
         .unwrap();
 
-    let pk = LoginPacket {
-        client_protocol: DefaultProtocol::id(),
-        connection_request: Vu32LenByteSlice::from("{}{}{}"),
+    let pk = NetworkSettingsPacket {
+        compression_threshold: 0,
+        compression_algorithm: CompressionAlgorithm::Zlib,
+        client_throttle: false,
+        client_throttle_threshold: 0,
+        client_throttle_scalar: 0.0,
     };
     println!("{:?}", &pk);
 

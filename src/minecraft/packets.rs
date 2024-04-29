@@ -1,6 +1,8 @@
-use std::io::Read;
+use std::io::{Error, ErrorKind, Read};
 
-use bstream::Vu32LenByteSlice;
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+
+use bstream::{EnumBinaryStream, Vu32LenByteSlice};
 use bstream_macro::BStream;
 
 use crate::minecraft::*;
@@ -55,6 +57,32 @@ register_pk!(
     RequestNetworkSettings
 );
 
+#[derive(Clone, Debug, Default)]
+pub enum CompressionAlgorithm {
+    Zlib = 0,
+    Snappy = 1,
+
+    #[default]
+    None = 255,
+}
+
+impl EnumBinaryStream for CompressionAlgorithm {
+    fn read(out: &mut impl Read) -> Result<Self> where Self: Sized {
+        match out.read_u16::<LittleEndian>()? {
+            0 => Ok(CompressionAlgorithm::Zlib),
+            1 => Ok(CompressionAlgorithm::Snappy),
+            255 => Ok(CompressionAlgorithm::None),
+            v => {
+                Err(Error::new(ErrorKind::InvalidData, format!("invalid value {}", v)))
+            }
+        }
+    }
+
+    fn write(&self, out: &mut impl Write) -> Result<()> {
+        out.write_u16::<LittleEndian>(self.clone() as u16)
+    }
+}
+
 /// NetworkSettingsPacket is sent by the server to update a variety of network settings. These settings modify the
 /// way packets are sent over the network stack.
 #[derive(Debug, Clone, Default, BStream)]
@@ -64,7 +92,7 @@ pub struct NetworkSettingsPacket {
     /// When set to 0, all packets will be left uncompressed.
     pub compression_threshold: u16,
     /// compression_algorithm is the algorithm that is used to compress packets.
-    pub compression_algorithm: u16,
+    pub compression_algorithm: CompressionAlgorithm,
 
     /// client_throttle regulates whether the client should throttle players when exceeding of the threshold. Players
     /// outside threshold will not be ticked, improving performance on low-end devices.
