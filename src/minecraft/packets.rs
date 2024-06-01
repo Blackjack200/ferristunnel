@@ -39,9 +39,9 @@ pub fn decode_kind(r: &mut impl Read, kind: &PacketKind) -> Result<PacketKind> {
         RequestNetworkSettings(pk) => RequestNetworkSettings(decode(pk, r)?),
         NetworkSettings(pk) => NetworkSettings(decode(pk, r)?),
         Login(pk) => Login(decode(pk, r)?),
-        PlayStatus(pk) => { PlayStatus(decode(pk, r)?) }
-        ActorEvent(pk) => { ActorEvent(decode(pk, r)?) }
-        ActorPickRequest(pk) => { ActorPickRequest(decode(pk, r)?) }
+        PlayStatus(pk) => PlayStatus(decode(pk, r)?),
+        ActorEvent(pk) => ActorEvent(decode(pk, r)?),
+        ActorPickRequest(pk) => ActorPickRequest(decode(pk, r)?),
     })
 }
 
@@ -141,7 +141,7 @@ register_pk!(PlayStatusPacket, 0x02, true, PlayStatus);
 #[b_enum(u64, Varint)]
 pub enum ActorEvent {
     #[default]
-    JUMP = 1,
+    Jump = 1,
     HurtAnimation = 2,
     DeathAnimation = 3,
     ArmSwing = 4,
@@ -158,7 +158,7 @@ pub enum ActorEvent {
     SquidInkCloud = 15,
     ZombieVillagerCure = 16,
     PlayAmbientSound = 17,
-    RESPAWN = 18,
+    Respawn = 18,
     IronGolemOfferFlower = 19,
     IronGolemWithdrawFlower = 20,
     LoveParticles = 21, //breeding
@@ -190,15 +190,15 @@ pub enum ActorEvent {
     CaravanUpdated = 64,
     ConsumeTotem = 65,
     PlayerCheckTreasureHunterAchievement = 66, //mojang...
-    EntitySpawn = 67, //used for MinecraftEventing stuff, not needed
-    DragonPuke = 68, //they call this puke particles
+    EntitySpawn = 67,                          //used for MinecraftEventing stuff, not needed
+    DragonPuke = 68,                           //they call this puke particles
     ItemEntityMerge = 69,
     StartSwim = 70,
     BalloonPop = 71,
     TreasureHunt = 72,
     AgentSummon = 73,
     ChargedItem = 74,
-    FALL = 75,
+    Fall = 75,
     GrowUp = 76,
     VibrationDetected = 77,
     DrinkMilk = 78,

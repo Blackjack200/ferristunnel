@@ -1,4 +1,4 @@
-workspace = { members = ["bstream-macro", "vmath"] }
+workspace = { members = ["bstream-macro", "physics-discrete", "statem", "vmath"] }
 [package]
 name = "ferristunnel"
 version = "0.0.1"
@@ -12,3 +12,4 @@ bstream = { path = "bstream" }
 bstream-macro = { path = "bstream-macro" }
 byteorder = "1.5.0"
 vmath = { path = "vmath" }
+statem = { path = "statem" }

@@ -45,6 +45,7 @@ dependencies = [
  "bstream-macro",
  "byteorder",
  "rand",
+ "statem",
  "vmath",
 ]
 
@@ -72,6 +73,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da0df0e5185db44f69b44f26786fe401b6c293d1907744beaa7fa62b2e5a517a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "physics-discrete"
+version = "0.1.0"
+dependencies = [
+ "vmath",
 ]
 
 [[package]]
@@ -127,6 +135,10 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "statem"
+version = "0.1.0"
 
 [[package]]
 name = "syn"
