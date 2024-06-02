@@ -7,9 +7,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+piston_window = "0.132.0"
 rand = "0.8.5"
 bstream = { path = "bstream" }
 bstream-macro = { path = "bstream-macro" }
 byteorder = "1.5.0"
 vmath = { path = "vmath" }
 statem = { path = "statem" }
+physics-discrete = { path = "physics-discrete" }

@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 vmath = { path = "../vmath" }
+num-traits = "0.2.18"

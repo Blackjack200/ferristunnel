@@ -110,7 +110,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         ::std::io::Result::Ok(())
                     }
                 }
-            }.into()
+            }
+            .into()
         }
         _ => unimplemented!(),
     }
@@ -134,21 +135,27 @@ fn get_func(
     quote! {#b(out, self.#field_id)?;}
 }
 
-fn gen_fn(typ: &str, little_endian: bool, read: bool, force_varint: bool) -> proc_macro2::TokenStream {
+fn gen_fn(
+    typ: &str,
+    little_endian: bool,
+    read: bool,
+    force_varint: bool,
+) -> proc_macro2::TokenStream {
     let mut typ: String = typ.to_string();
     let mut varint = typ == "vi32" || typ == "vu32" || typ == "vi64" || typ == "vu64";
     if force_varint && !varint {
         varint = true;
         typ.insert(0, 'v');
     }
-    let mut func = String::from(match read {
-        true => "read_",
-        false => "write_",
-    });
-    let mut endian = Ident::new("LittleEndian", Span::call_site());
-    if !little_endian {
-        endian = Ident::new("BigEndian", Span::call_site())
-    }
+    let mut func = String::from(if read { "read_" } else { "write_" });
+    let endian = Ident::new(
+        if little_endian {
+            "LittleEndian"
+        } else {
+            "BigEndian"
+        },
+        Span::call_site(),
+    );
 
     func.push_str(&typ);
     let func_id = Ident::new(func.as_str(), Span::call_site());
@@ -168,9 +175,10 @@ fn gen_fn(typ: &str, little_endian: bool, read: bool, force_varint: bool) -> pro
         };
     }
     let ext = Ident::new(
-        match read {
-            true => "ReadBytesExt",
-            false => "WriteBytesExt",
+        if read {
+            "ReadBytesExt"
+        } else {
+            "WriteBytesExt"
         },
         Span::call_site(),
     );
