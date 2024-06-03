@@ -10,7 +10,7 @@ use piston_window::{
 
 use physics_discrete::{interpolate, Object, Space};
 use physics_discrete::interpolate::Interpolator;
-use physics_discrete::minecraft::{MinecraftTimeSpace, MovingEntity};
+use physics_discrete::minecraft::{MinecraftSpace, MovingEntity};
 
 use crate::minecraft::*;
 use crate::minecraft::packets::{CompressionAlgorithm, NetworkSettingsPacket};
@@ -86,15 +86,15 @@ fn test_state_machine() {
     ma.fire(1);
 }
 
-type ContinuousMeasure = <MinecraftTimeSpace as Space>::ContinuousMeasure;
-type Position = <MinecraftTimeSpace as Space>::Position;
+type ContinuousMeasure = <MinecraftSpace as Space>::ContinuousMeasure;
+type Position = <MinecraftSpace as Space>::Position;
 const INITIAL_X: ContinuousMeasure = 100.0;
 const INITIAL_Y: ContinuousMeasure = 400.0;
 const GROUND_Y: ContinuousMeasure = 0.0;
 const GRAVITY: ContinuousMeasure = 20.0;
 
 fn test_entity() {
-    let entity = Arc::new(Mutex::new(MovingEntity::<MinecraftTimeSpace>::default()));
+    let entity = Arc::new(Mutex::new(MovingEntity::<MinecraftSpace>::default()));
     let entity_clone = entity.clone();
     {
         let mut ent = entity.lock().unwrap();
@@ -120,9 +120,7 @@ fn test_entity() {
             let mut em = last_update.lock().unwrap();
             *em = Instant::now();
         }
-        thread::sleep(Duration::from_secs_f64(
-            MinecraftTimeSpace::per_tick() as f64
-        ));
+        thread::sleep(Duration::from_secs_f64(MinecraftSpace::per_tick() as f64));
     });
 
     let mut window: PistonWindow = WindowSettings::new("Movement Simulation", [800, 600])
@@ -145,15 +143,13 @@ fn test_entity() {
                         pos = *entity.position();
                         delta_pos = *entity.delta_position();
                     }
-                    let interpolated_pos = interpolate::LinearInterpolator::interpolate::<
-                        Position,
-                        MinecraftTimeSpace,
-                    >(
-                        pos,
-                        pos + delta_pos,
-                        MinecraftTimeSpace::per_tick(),
-                        t as ContinuousMeasure,
-                    );
+                    let interpolated_pos =
+                        interpolate::LinearInterpolator::interpolate::<Position, MinecraftSpace>(
+                            pos,
+                            pos + delta_pos,
+                            MinecraftSpace::per_tick(),
+                            t as ContinuousMeasure,
+                        );
                     let square = rectangle::square(0.0, 0.0, 50.0);
 
                     let transform = c.transform.trans(pos.x as f64, 600.0 - (pos.y as f64));
